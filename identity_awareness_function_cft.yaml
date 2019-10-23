@@ -1,48 +1,61 @@
-AWSTemplateFormatVersion : '2010-09-09'
+AWSTemplateFormatVersion : "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 
 Parameters:
   cgGatewayList:
-    Default: '<GatewayIp:Secret>,...'
-    Description: 'REQUIRED - CSV String of CloudGuard Security Gateway IPs (e.g. 54.1.1.10:12345D8Bgt,54.1.1.11:12345D8Bgt).'
+    Default: "<GatewayIp:Secret>,..."
+    Description: "REQUIRED - CSV String of CloudGuard Security Gateway IPs (e.g. 54.1.1.10:12345D8Bgt,54.1.1.11:12345D8Bgt)."
     Type: String
-  lambdaCodeS3Bucket:
-    Default: '<S3-bucket-name>'
-    Description: 'S3 Bucket path of lambda deployment zip file with dependencies preinstalled.'
-    Type: String
+  lambdaSubnet:
+    Type: "AWS::EC2::Subnet::Id"
+    Description: "Privte subnet with NAT Gateway to run lambda function in with access to Check Point Gateways"
+  lambdaVPC:
+    Type: "AWS::EC2::VPC::Id"
+    Description: "VPC ID of the subnet selected above in the lambdaSubnet parameter."
 
 Resources:
   InputTopic:
     Type: "AWS::SNS::Topic"
     Properties:
-      DisplayName: 'Identity Awareness Input Topic'
-      TopicName: 'cpgw-ia-input'
+      DisplayName: "Identity Awareness Input Topic"
+      TopicName: "IdentityAwarenessFunction-input"
+  
+  lambdaSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Bastion security group
+      VpcId: !Ref lambdaVPC
+      Tags:
+      - Key: Name
+        Value: "IdentityAwarenessFunctionSG"
 
   CpGwIdentityAwarenessFunction:
     Type: "AWS::Serverless::Function"
     Properties:
       FunctionName: CpGwIdentityAwarenessFunction
-      Description: 'Check Point Gateway - SNS to Identity Awareness API integration'
-      CodeUri:
-        Bucket: 
-          Ref: lambdaCodeS3Bucket
-        Key: 'ia_lambda_function.zip'
+      Description: "Check Point Gateway - SNS to Identity Awareness API integration"
+      CodeUri: "s3://d9-matt-sandbox-public/ia_lambda_function.zip"
       Runtime: python3.6
       Timeout: 30 
       Handler: lambda_function.lambda_handler
       Environment:
         Variables:
-          cgGatewayList: ''
+          cgGatewayList: !Ref cgGatewayList
       Events:
-        d9Findings:
+        iaMessage:
           Type: SNS
           Properties:
-            Topic: !Ref InputTopic 
+            Topic: !Ref InputTopic
       Policies:
-        - 'AWSLambdaVPCAccessExecutionRole'
+        - "AWSLambdaVPCAccessExecutionRole"
+      VpcConfig:
+        SecurityGroupIds: 
+        - !Ref lambdaSG
+        SubnetIds: 
+        - !Ref lambdaSubnet
 
 Outputs:
   InputTopicARN:
-    Description: 'ARN that Dome9 sends events to'
+    Description: "ARN that Dome9 sends events to"
     Value: !Ref InputTopic
 
