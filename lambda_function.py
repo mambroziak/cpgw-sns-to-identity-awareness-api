@@ -3,7 +3,7 @@
 # *******************************************************************************
 # Name: cpgw_sns_to_identity_awareness.py
 # Description: An AWS Lambda function that consumes an SNS message containing
-#  a target IP, role and session-timeout to be injected into the CheckPoint 
+#  a target IP, role and session-timeout to be added/deleted into the CheckPoint 
 #  Gateway Idenity Awareness API
 #
 # PIP Requirements: requests
@@ -95,9 +95,14 @@ def process_rule(message):
 
 def lambda_handler(event, context):
 
-    #  Message JSON: 
-    #  Syntax: {"hostIp": "<ip-address>","roleName": "<role-name-here>","session-timeout": <integer-300-or-greater>}
-    #  Example: {"hostIp": "1.1.1.40","roleName": "role1","session-timeout": 60}
+    #  Message JSON format: 
+    #   action:add: {"action":"add","ip":"<ip-address>","role":"<role-name>","session-timeout":<integer-300-or-greater>}
+    #   action:delete: {"action":"delete","ip":"<ip-address>"}
+    #
+    #  JSON Examples:
+    #   action:add: {"action":"add","ip":"1.1.1.40","role":"role1","session-timeout":300}
+    #   action:delete: {"action":"delete","ip":"1.1.1.40"}
+    
     message = event['Records'][0]['Sns']['Message']
     print("From SNS: " + str(message))
     message = json.loads(message)
