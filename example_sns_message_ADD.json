@@ -1,0 +1,6 @@
+{
+   "action":"add",
+   "ip":"1.1.1.1",
+   "role":"role1",
+   "session-timeout":300
+}

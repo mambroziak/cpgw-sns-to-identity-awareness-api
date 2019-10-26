@@ -32,7 +32,6 @@ Resources:
   CpGwIdentityAwarenessFunction:
     Type: "AWS::Serverless::Function"
     Properties:
-      FunctionName: CpGwIdentityAwarenessFunction
       Description: "Check Point Gateway - SNS to Identity Awareness API integration"
       CodeUri: "s3://d9-matt-sandbox-public/ia_lambda_function.zip"
       Runtime: python3.6

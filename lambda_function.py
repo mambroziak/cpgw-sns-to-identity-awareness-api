@@ -58,30 +58,38 @@ def process_rule(message):
         # parse host and shared secret from string      
         ia_api_hostip = gw.split(':')[0]
         ia_api_secret = gw.split(':')[1]
-        
-        if 'session-timeout' in message: #if session-timeout does not exist or less than 300 then default to 300 seconds
-            if message['session-timeout'] >= 300:
+
+
+        if message['action'].lower() == 'add':
+            if 'session-timeout' in message and message['session-timeout'] >= 300: #if session-timeout does not exist or less than 300 then default to 300 seconds
                 session_timeout = message['session-timeout']
             else:
                 session_timeout = 300
-        else:
-            session_timeout = 300 
 
-        payload = {
-          "shared-secret": ia_api_secret,
-          "ip-address": message['hostIp'],
-          "machine": "allowed host",
-          "roles": [message['roleName']],
-          "session-timeout": session_timeout,
-          "fetch-machine-groups": 0,
-          "calculate-roles": 0,
-          "identity-source": "AWS SNS"
-        } 
-         
-        url = f'https://{ia_api_hostip}/_IA_API/v1.0/add-identity'
-        
-        post_result = send_to_gw(url, payload)
-        report.append({"gateway": ia_api_hostip, "result": post_result, "session-timeout": session_timeout})
+            payload = {
+              "shared-secret": ia_api_secret,
+              "ip-address": message['ip'],
+              "machine": "allowed host",
+              "roles": [message['role']],
+              "session-timeout": session_timeout,
+              "fetch-machine-groups": 0,
+              "calculate-roles": 0,
+              "identity-source": "AWS SNS"
+            } 
+             
+            url = f'https://{ia_api_hostip}/_IA_API/v1.0/add-identity'
+            post_result = send_to_gw(url, payload)
+            report.append({"gateway": ia_api_hostip, "result": post_result, "session-timeout": session_timeout})
+            
+        elif message['action'].lower() == 'delete':
+            payload = {
+              "shared-secret": ia_api_secret,
+              "ip-address": message['ip']
+            }
+            
+            url = f'https://{ia_api_hostip}/_IA_API/v1.0/delete-identity'
+            post_result = send_to_gw(url, payload)
+            report.append({"gateway": ia_api_hostip, "result": post_result})
     
     return report
 
