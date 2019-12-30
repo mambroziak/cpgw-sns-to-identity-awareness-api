@@ -1,5 +1,5 @@
 # Check Point Security Gateway - SNS to Identity Awareness API
-An AWS Lambda function that consumes an SNS message containing a target IP, role and session-timeout to be added/deleted into the CheckPoint Gateway Idenity Awareness API
+An AWS Lambda function that consumes an SNS message containing a target IP, role and session-timeout to be added/deleted into the CheckPoint Gateway Identity Awareness API
 >This project has been tested on CG GW R80.20.
 
 ## **Process Summary** 
@@ -19,7 +19,7 @@ The following explains what this tool does in sequence at a high level:
 #### Build a zip file of the python environment for AWS Lambda
 
 
-1. Clone this Git repo to your local environment and change the the repo directory.
+1. Clone this Git repo to your local environment and change the repo directory.
 2. Install package dependencies 
   ```bash
   pip install -r requirements.txt --target ./
